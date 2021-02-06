@@ -1,0 +1,4 @@
+name: MkEss2021
+version: ${project.version}
+main: com.johnson.mkess2021.MkEss2021
+api-version: 1.16
