@@ -46,51 +46,49 @@ public class NetherDoorTeleport {
     }
 
     private void setupRunnable() {
-        runnable = new Runnable() {
-            public void run() {
-                int player_count = Bukkit.getServer().getOnlinePlayers().size();
-                int delay = 200;
-                if(Bukkit.getServer().getOnlinePlayers().size() > 0){
-                    if (!iter.hasNext()) {
-                        iter = Bukkit.getServer().getOnlinePlayers().iterator();
-                    }
-                    Player p = iter.next();
+        runnable = () -> {
+            int player_count = Bukkit.getServer().getOnlinePlayers().size();
+            int delay = 200;
+            if(Bukkit.getServer().getOnlinePlayers().size() > 0){
+                if (!iter.hasNext()) {
+                    iter = Bukkit.getServer().getOnlinePlayers().iterator();
+                }
+                Player p = iter.next();
+                if (
+                        p.getLocation().getBlock().getType() == Material.NETHER_PORTAL &&
+                                p.getWorld().getEnvironment() == World.Environment.NORMAL
+                ) {
+                    TeleportLocation tl = teleport_location.get(p.getUniqueId());
                     if (
-                            p.getLocation().getBlock().getType() == Material.NETHER_PORTAL &&
-                                    p.getWorld().getEnvironment() == World.Environment.NORMAL
+                            tl != null &&
+                                    tl.to.getWorld() == p.getWorld() &&
+                                    tl.to.distance(p.getLocation()) < 10
                     ) {
-                        TeleportLocation tl = teleport_location.get(p.getUniqueId());
-                        if (
-                                tl != null &&
-                                        tl.to.getWorld() == p.getWorld() &&
-                                        tl.to.distance(p.getLocation()) < 10
-                        ) {
-                            if(in_portal_list_twice.contains(p.getUniqueId())){
-                                p.teleport(tl.from);
-                                in_portal_list_once.remove(p.getUniqueId());
-                                in_portal_list_twice.remove(p.getUniqueId());
-                                teleport_location.remove(p.getUniqueId());
-                            } else if(in_portal_list_once.contains(p.getUniqueId())){
-                                p.sendMessage("已偵測到您可能被地獄門卡住, 將在數秒後回傳");
-                                in_portal_list_twice.add(p.getUniqueId());
-                            } else {
-                                in_portal_list_once.add(p.getUniqueId());
-                            }
-                        } else {
+                        if(in_portal_list_twice.contains(p.getUniqueId())){
+                            p.teleport(tl.from);
                             in_portal_list_once.remove(p.getUniqueId());
                             in_portal_list_twice.remove(p.getUniqueId());
                             teleport_location.remove(p.getUniqueId());
+                        } else if(in_portal_list_once.contains(p.getUniqueId())){
+                            p.sendMessage("已偵測到您可能被地獄門卡住, 將在數秒後回傳");
+                            in_portal_list_twice.add(p.getUniqueId());
+                        } else {
+                            in_portal_list_once.add(p.getUniqueId());
                         }
-                    } else{
+                    } else {
                         in_portal_list_once.remove(p.getUniqueId());
                         in_portal_list_twice.remove(p.getUniqueId());
+                        teleport_location.remove(p.getUniqueId());
                     }
-                    delay = 240 / player_count;
+                } else{
+                    in_portal_list_once.remove(p.getUniqueId());
+                    in_portal_list_twice.remove(p.getUniqueId());
                 }
-                if (delay < 1)
-                    delay = 1;
-                schedule_id = Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, runnable, delay);
+                delay = 240 / player_count;
             }
+            if (delay < 1)
+                delay = 1;
+            schedule_id = Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, runnable, delay);
         };
         schedule_id = this.plugin.getServer().getScheduler().scheduleSyncDelayedTask(this.plugin, runnable, 0);
     }
