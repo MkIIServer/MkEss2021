@@ -1,5 +1,6 @@
 package com.johnson.mkess2021;
 
+
 import com.johnson.mkess2021.listener.*;
 import com.johnson.mkess2021.schedule.NetherDoorTeleport;
 import org.bukkit.Bukkit;
@@ -16,12 +17,14 @@ public final class MkEss2021 extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
+
         new SpeedElytraLimitListener(this);
         new NetherDoorTeleportListener(this);
         new ShulkerBoxLimitListener(this);
         new WitherSpawnListener(this);
         new ChatListener(this);
         new PlayerJoinListener(this);
+        new PlayerDeathListener(this);
 
         netherdoor = new NetherDoorTeleport(this);
 
@@ -32,5 +35,7 @@ public final class MkEss2021 extends JavaPlugin {
         // Plugin shutdown logic
         HandlerList.unregisterAll();
     }
+
+
 
 }
